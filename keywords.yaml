@@ -1,0 +1,43 @@
+# align center
+พระราชกฤษฎีกา:
+  token: provision
+  level: 0
+พระราชบัญญัติ:
+  token: provision
+  level: 0
+ผู้รับสนองพระบรมราชโองการ: 
+  token: provision_footer
+  level: 1
+
+ข้อความเบื้องต้น:
+  token: preface
+  level: 4
+บรรพ:
+  token: division
+  level: 1
+ภาค:
+  token: division
+  level: 1
+ลักษณะ:
+  token: subdivision
+  level: 2
+หมวด:
+  token: chapter
+  level: 3
+ส่วนที่:
+  token: section
+  level: 4
+# no alignment
+มาตรา:
+  token: article
+  level: 5
+
+law_title:
+  token: law_title
+  level: 0
+law_footer:
+  token: law_footer
+  level: 0
+extra:
+  token: extra
+  level: 5
