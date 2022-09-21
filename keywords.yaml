@@ -8,6 +8,10 @@
 ผู้รับสนองพระบรมราชโองการ: 
   token: provision_footer
   level: 1
+สารบาญ:
+  token: index
+  level: 0
+
 
 ข้อความเบื้องต้น:
   token: preface
