@@ -48,8 +48,8 @@ def main(args):
     assert(len(laws_url.items())>0)
     
   for law_title in laws_url:
-    if law_title!="ประมวลกฎหมายวิธีพิจารณาความอาญา":
-      continue
+    # if law_title!="ประมวลกฎหมายวิธีพิจารณาความอาญา":
+    #   continue
     print(law_title)
     url = laws_url[law_title]["url"]
     law_body = scrape_body_html(driver, url)
@@ -62,7 +62,7 @@ def main(args):
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("--urlmap", type=str, default="./urlmap.yaml")
+  parser.add_argument("--urlmap", type=str, default="./data/urlmap.yaml")
   parser.add_argument("--out", type=str, default="./data")
   args = parser.parse_args()
   path = Path(args.urlmap)

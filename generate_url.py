@@ -1,5 +1,6 @@
 import yaml
-import time
+from datetime import datetime
+from pathlib import Path
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -32,11 +33,13 @@ def get_url(driver, law_title):
   if element is not None:
     element.click()
     a = async_find_element(driver, (By.XPATH, "//a[contains(text(), 'ล่าสุด')]"))
-    update = async_find_element(driver, (By.XPATH, "//a[contains(text(), 'Update ณ วันที่')]"))
-    date = update.text
+    
     url = a.get_attribute("href")
+    name = a.text
+    query_date = datetime.now()
+    
     element.click()
-    return {"url": url, "date": date}
+    return {"url": url, "name": name, "query_date": query_date.strftime("%Y/%m/%d")}
   else:
     print(f"error: {law_title}")
     return "unknown"
@@ -48,9 +51,9 @@ def main():
   laws_url = {}
   for law_title in LAWS:
     laws_url[law_title] = get_url(driver, law_title)
-  print(laws_url)
 
-  with open('urlmap.yaml', 'w') as f:
+  Path("./data").mkdir(parents=True, exist_ok=True)
+  with open('data/urlmap.yaml', 'w') as f:
     yaml.dump(laws_url, f, default_flow_style=False, allow_unicode=True)
   input("\n\nPress enter to exit.")
   driver.quit()

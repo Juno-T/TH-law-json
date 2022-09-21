@@ -1,7 +1,6 @@
 from typing import Any
 import yaml
 
-# TODO: exclude footers (แก้ไขเพิ่มเติมประมวลกฎหมาย, มาตรา, หมายเหตุ)
 # TODO: add meta (scrape date)
 
 __law_title__ = "law_title"
@@ -68,6 +67,7 @@ class LawParser:
       3. Law body starts with non-titled, centered __law_title__.
       4. __text_tokens__ don't have title or children.
       5. Centered paragraph inside __law_body_tokens__ will be classified as non-titled extra token.
+      6. Ignore remarks (law editting remarks etc.)
   """
   def __init__(self, title: str):
     self.title = title
@@ -170,7 +170,9 @@ class LawParser:
       # sequential token
       if not top["token"] in parent["data"]["content"]:
         parent["data"]["content"][top["token"]]={}
-      parent["data"]["content"][top["token"]][top["data"]["key"]]=top["data"]["content"]
+      if not top["data"]["key"] in parent["data"]["content"][top["token"]]:
+        # ignore remarks.
+        parent["data"]["content"][top["token"]][top["data"]["key"]]=top["data"]["content"]
     self._stack.update_top(**parent)
 
   def add_text_to_parent(self, text):

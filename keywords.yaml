@@ -22,6 +22,9 @@
 ภาค:
   token: division
   level: 1
+ภาคที่:
+  token: division
+  level: 1
 ลักษณะ:
   token: subdivision
   level: 2
