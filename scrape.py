@@ -48,15 +48,13 @@ def main(args):
     assert(len(laws_url.items())>0)
     
   for law_title in laws_url:
-    if law_title!="ประมวลกฎหมายวิธีพิจารณาความอาญา":
-      continue
     print(law_title)
     url = laws_url[law_title]["url"]
     law_body = scrape_body_html(driver, url)
     law_dict, law_df = parse_law_body(law_title, law_body)
-    with open(os.path.join(args.out,f'{law_title}.json'), 'w', encoding='utf8') as f:
+    with open(os.path.join(args.out, "json", f'{law_title}.json'), 'w', encoding='utf8') as f:
       json.dump(law_dict, f, indent=1, ensure_ascii=False)
-    law_df.to_csv(os.path.join(args.out,f'{law_title}.csv'), index=False)
+    law_df.to_csv(os.path.join(args.out, "csv", f'{law_title}.csv'), index=False)
   input("\n\nPress enter to exit.")
   driver.quit()
   
@@ -68,5 +66,6 @@ if __name__=="__main__":
   args = parser.parse_args()
   path = Path(args.urlmap)
   assert path.is_file()
-  Path(args.out).mkdir(parents=True, exist_ok=True)
+  (Path(args.out)/"json").mkdir(parents=True, exist_ok=True)
+  (Path(args.out)/"csv").mkdir(parents=True, exist_ok=True)
   main(args)

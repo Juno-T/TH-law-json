@@ -1,7 +1,5 @@
 # TH-law-json
-Parsing Thai laws into more interpretable json format.
-
-:construction: The project is in progress
+Parsing Thai laws into more interpretable json and csv formats.
 
 ## Usage
 
@@ -12,6 +10,4 @@ python3 scrape.py          # Scrape the urls, parse and save them in json format
 ```
 
 ### Parsed data
-You can also download parsed data from [releases](https://github.com/Juno-T/TH-law-json/releases).  
-
-\**Note that the current version is not complete. The remark paragraphs in the footer aren't being parsed correctly.*
+You can also download parsed data from [releases](https://github.com/Juno-T/TH-law-json/releases).

@@ -6,6 +6,7 @@ import pythainlp as ptn
 
 # TODO: add meta (scrape date)
 
+# make sure that these tokens match the keywords.yaml
 __law_title__ = "law_title"
 __law_footer__ = "law_footer"
 __law_body__ = "body"
@@ -93,7 +94,9 @@ class Stack:
       token = self.stack[i]["token"]
       data = self.stack[i]["data"]
       key = parse_key(data["key"])
-      row[token]=key  
+      row[token]=key
+      if "title" in data["content"]:
+        row[token+"_name"] = data["content"]["title"]
       i+=1
     return row
 
@@ -122,10 +125,11 @@ class LawParser:
     self._keywords[self.title]=self._keywords[__law_title__]
   
   def parse_paragraph(self, text: str, alignment: str=""):
-    text = text.strip()
+    text = text.strip(' \t\n\r')
     if len(text)==0:
       return
-    if alignment == "center":
+    if alignment == "center" or text==self.title:
+      # ประมวลกฎหมายอาญา's title alignment != center
       # check if parent needs title, if so, add title and return
       # else, check keyword. If not a keyword, add text to parent.
       # else, pop lower level node until a parent is found, push to stack.
@@ -260,7 +264,27 @@ class LawParser:
       return
     row["text"]=article["data"]["content"]["text"].replace("\n", "__newline__")
     row[__article__] = key
+    # ignore remarks
+    if len(self.df_rows)>0:
+      prev_row = self.df_rows[-1]
+      if int(row[__article__])<int(prev_row[__article__]):
+        return
     self.df_rows.append(row)
+
+  def get_df_column_order(self, original_column):
+    ordered_kw = list(self._keywords.keys())
+    # sort col by level
+    ordered_kw.sort(key=lambda x: self._keywords[x]["level"])
+    ordered_column=[]
+    for kw in ordered_kw:
+      c = self._keywords[kw]["token"]
+      if c in original_column and c not in ordered_column:
+        ordered_column.append(c)
+      if c+"_name" in original_column and c+"_name" not in ordered_column:
+        ordered_column.append(c+"_name")
+    if "text" in original_column:
+      ordered_column.append("text")
+    return ordered_column
 
   def conclude(self):
     while len(self._stack)>1:
@@ -275,4 +299,5 @@ class LawParser:
     }
 
     law_df = pd.DataFrame(self.df_rows)
-    return law_dict, law_df
+    ordered_column = self.get_df_column_order(law_df.columns)
+    return law_dict, law_df[ordered_column]
