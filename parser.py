@@ -1,6 +1,9 @@
 from typing import Any
 import yaml
 
+import pandas as pd
+import pythainlp as ptn
+
 # TODO: add meta (scrape date)
 
 __law_title__ = "law_title"
@@ -40,6 +43,28 @@ __text_tokens__ = [
   __provision_footer__,
 ]
 
+def get_prefix_digits(s: str):
+  for i, c in enumerate(s):
+    if not c.isdigit():
+      return s[:i]
+  return s
+
+def parse_key(idx_str: str):
+  """
+  premise:
+    1. contains atleast two parts, sep by ' '.
+    2. the number is in the second part. Its suffix starts with symbol.
+  """
+  try:
+    num_part = idx_str.split(' ')[1]
+    num_part = ptn.util.thai_digit_to_arabic_digit(num_part)
+    index = get_prefix_digits(num_part)
+  except:
+    return idx_str
+  if len(index)==0:
+    return idx_str
+  return index
+
 class Stack:
   def __init__(self):
     self.stack = []
@@ -55,6 +80,22 @@ class Stack:
   
   def update_top(self, token: str, level: int, data: Any):
     self.stack[-1]={"token": token, "level": level, "data": data}
+  
+  def to_dict(self):
+    i=0
+    while(i < len(self.stack) and self.stack[i]["token"] != __law_title__):
+      i+=1
+    if i == len(self.stack):
+      return None
+    i+=1
+    row = {}
+    while(i < len(self.stack)):
+      token = self.stack[i]["token"]
+      data = self.stack[i]["data"]
+      key = parse_key(data["key"])
+      row[token]=key  
+      i+=1
+    return row
 
   def __len__(self):
     return len(self.stack)
@@ -73,6 +114,7 @@ class LawParser:
     self.title = title
     self._stack = Stack()
     self._stack.push("top level", -1, {})
+    self.df_rows = []
 
     with open("keywords.yaml", 'r') as f:
       self._keywords = yaml.safe_load(f)
@@ -170,9 +212,12 @@ class LawParser:
       # sequential token
       if not top["token"] in parent["data"]["content"]:
         parent["data"]["content"][top["token"]]={}
-      if not top["data"]["key"] in parent["data"]["content"][top["token"]]:
+      key = parse_key(top["data"]["key"])
+      if not key in parent["data"]["content"][top["token"]]:
         # ignore remarks.
-        parent["data"]["content"][top["token"]][top["data"]["key"]]=top["data"]["content"]
+        parent["data"]["content"][top["token"]][key]=top["data"]["content"]
+        if top["token"]==__article__:
+          self.add_article_to_table(top, key)
     self._stack.update_top(**parent)
 
   def add_text_to_parent(self, text):
@@ -196,7 +241,7 @@ class LawParser:
       if kw is None:
         return None
       if kw["token"]==__article__:
-        return {
+        article = {
           "token": __article__,
           "level": kw["level"],
           "data":{
@@ -204,8 +249,19 @@ class LawParser:
             "content": {"text": text},
           }
         }
+        return article
     return None
-      
+  
+  def add_article_to_table(self, article, key):
+    assert article["token"]==__article__
+    # construct row
+    row = self._stack.to_dict()
+    if row is None:
+      return
+    row["text"]=article["data"]["content"]["text"].replace("\n", "__newline__")
+    row[__article__] = key
+    self.df_rows.append(row)
+
   def conclude(self):
     while len(self._stack)>1:
       top = self._stack.top()
@@ -213,7 +269,10 @@ class LawParser:
         break
       self.fold()
     top = self._stack.pop()
-    return {
+    law_dict = {
       "title": self.title,
       **top["data"]["content"]
     }
+
+    law_df = pd.DataFrame(self.df_rows)
+    return law_dict, law_df
